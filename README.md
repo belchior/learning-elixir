@@ -1,6 +1,8 @@
 # Calc
 
-## development
+This project is a math expression calculator and compiler, the reason to it exists is to exercise the syntax, conventions and concepts of the [elixir lang](https://elixir-lang.org)
+
+## Development
 
 To build run:
 
@@ -8,7 +10,7 @@ To build run:
 mix escript.build
 ```
 
-To execute de calculator:
+To execute the calculator:
 
 ```shell
 ./calc 1+2-3
