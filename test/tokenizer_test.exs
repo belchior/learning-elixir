@@ -39,6 +39,11 @@ defmodule TokenizerTest do
     assert tokens == {:ok, [{:bracket, :round_bracket, ")"}]}
   end
 
+  test "should tokenize spaces" do
+    tokens = tokenize("  ")
+    assert tokens == {:ok, [{:space, :space, "  "}]}
+  end
+
   test "should tokenize a subtraction operator" do
     tokens = tokenize("-")
     assert tokens == {:ok, [{:operator, :subtraction, "-"}]}
@@ -47,7 +52,7 @@ defmodule TokenizerTest do
   test "tokenize should convert a valid formula to a list of tokens" do
     formula = "1.3+1.7-3*4/6"
 
-    tokenList = [
+    tokens = [
       {:operand, :number, "1.3"},
       {:operator, :addition, "+"},
       {:operand, :number, "1.7"},
@@ -59,7 +64,30 @@ defmodule TokenizerTest do
       {:operand, :number, "6"}
     ]
 
-    assert tokenize(formula) == {:ok, tokenList}
+    assert tokenize(formula) == {:ok, tokens}
+  end
+
+  test "tokenize should convert a formula with space to a list of tokens" do
+    formula = " 1 + 2-3  *4/6 "
+
+    tokens = [
+      {:space, :space, " "},
+      {:operand, :number, "1"},
+      {:space, :space, " "},
+      {:operator, :addition, "+"},
+      {:space, :space, " "},
+      {:operand, :number, "2"},
+      {:operator, :subtraction, "-"},
+      {:operand, :number, "3"},
+      {:space, :space, "  "},
+      {:operator, :multiplication, "*"},
+      {:operand, :number, "4"},
+      {:operator, :division, "/"},
+      {:operand, :number, "6"},
+      {:space, :space, " "}
+    ]
+
+    assert tokenize(formula) == {:ok, tokens}
   end
 
   test "tokenize should raise an exception in a invalid formula" do

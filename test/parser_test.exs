@@ -4,7 +4,7 @@ defmodule ParserTest do
 
   doctest Calc.Parser
 
-  test "parse should respect the precedence order multiplication over division" do
+  test "parse should respect the precedence order: multiplication over division" do
     tokens = [
       {:operand, :number, "1"},
       {:operator, :division, "/"},
@@ -28,7 +28,7 @@ defmodule ParserTest do
     assert parse({:ok, tokens}) == {:ok, ast}
   end
 
-  test "parse should respect the precedence order division over addition" do
+  test "parse should respect the precedence order: division over addition" do
     tokens = [
       {:operand, :number, "1"},
       {:operator, :addition, "+"},
@@ -52,7 +52,7 @@ defmodule ParserTest do
     assert parse({:ok, tokens}) == {:ok, ast}
   end
 
-  test "parse should respect the precedence order addition over subtraction" do
+  test "parse should respect the precedence order: addition over subtraction" do
     tokens = [
       {:operand, :number, "1"},
       {:operator, :subtraction, "-"},
@@ -76,7 +76,7 @@ defmodule ParserTest do
     assert parse({:ok, tokens}) == {:ok, ast}
   end
 
-  test "parse should convert a token list into an AST" do
+  test "parse should convert a list of tokens into an AST" do
     tokens = [
       {:operand, :number, "1"},
       {:operator, :addition, "+"},
@@ -87,6 +87,36 @@ defmodule ParserTest do
       {:operand, :number, "4"},
       {:operator, :division, "/"},
       {:operand, :number, "6"}
+    ]
+
+    ast = {
+      :subtraction,
+      {:addition, 1, 2},
+      {
+        :division,
+        {:multiplication, 3, 4},
+        6
+      }
+    }
+
+    assert parse({:ok, tokens}) == {:ok, ast}
+  end
+
+  test "parse should remove all space from the list of tokens before convert into an AST" do
+    tokens = [
+      {:space, :space, " "},
+      {:operand, :number, "1"},
+      {:space, :space, " "},
+      {:operator, :addition, "+"},
+      {:operand, :number, "2"},
+      {:operator, :subtraction, "-"},
+      {:space, :space, " "},
+      {:operand, :number, "3"},
+      {:operator, :multiplication, "*"},
+      {:operand, :number, "4"},
+      {:operator, :division, "/"},
+      {:operand, :number, "6"},
+      {:space, :space, " "}
     ]
 
     ast = {

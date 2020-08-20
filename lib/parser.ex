@@ -48,7 +48,9 @@ defmodule Calc.Parser do
   end
 
   def parse({:ok, tokens}) do
-    to_ast(tokens, {:ok, {nil, nil, nil}})
+    tokens
+    |> remove_space
+    |> to_ast({:ok, {nil, nil, nil}})
   end
 
   @spec to_number(binary) :: :error | number
@@ -85,26 +87,20 @@ defmodule Calc.Parser do
 
   # AST helpers
 
-  @spec precede?(type, type) :: boolean
-  defp precede?(type1, type2) do
-    precedence = [
-      :round_bracket,
-      :box_bracket,
-      :curly_bracket,
-      :multiplication,
-      :division,
-      :addition,
-      :subtraction,
-      :number
-    ]
+  @spec add_operand(ast_wrap, value) :: ast_wrap
+  defp add_operand({:ok, pre_ast}, value) do
+    case pre_ast do
+      {operator, nil, nil} -> {:ok, {operator, to_number(value), nil}}
+      {operator, number1, nil} -> {:ok, {operator, number1, to_number(value)}}
+      _ -> {:error, "The value #{inspect(value)} can't be added, the node are filled or invalid"}
+    end
+  end
 
-    indexType1 = Enum.find_index(precedence, &(&1 == type1))
-    indexType2 = Enum.find_index(precedence, &(&1 == type2))
-
-    case {indexType1, indexType2} do
-      {nil, index2} when is_number(index2) -> false
-      {index1, nil} when is_number(index1) -> true
-      {index1, index2} when is_number(index1) and is_number(index2) -> index1 <= index2
+  @spec add_operator(ast_wrap, operator) :: ast_wrap
+  defp add_operator({:ok, pre_ast}, operator) do
+    case pre_ast do
+      {nil, value1, value2} -> {:ok, {operator, value1, value2}}
+      _ -> {:error, "Un operator has already been defined and cannot be overridden"}
     end
   end
 
@@ -125,6 +121,11 @@ defmodule Calc.Parser do
     end
   end
 
+  @spec remove_space(tokens) :: tokens
+  def remove_space(tokens) do
+    Enum.reject(tokens, fn token -> elem(token, 0) == :space end)
+  end
+
   @spec node_filled?(pre_ast) :: boolean
   defp node_filled?(pre_ast) do
     !(pre_ast
@@ -132,20 +133,26 @@ defmodule Calc.Parser do
       |> Enum.find_value(false, &is_nil/1))
   end
 
-  @spec add_operand(ast_wrap, value) :: ast_wrap
-  defp add_operand({:ok, pre_ast}, value) do
-    case pre_ast do
-      {operator, nil, nil} -> {:ok, {operator, to_number(value), nil}}
-      {operator, number1, nil} -> {:ok, {operator, number1, to_number(value)}}
-      _ -> {:error, "The value #{inspect(value)} can't be added, the node are filled or invalid"}
-    end
-  end
+  @spec precede?(type, type) :: boolean
+  defp precede?(type1, type2) do
+    precedence = [
+      :round_bracket,
+      :box_bracket,
+      :curly_bracket,
+      :multiplication,
+      :division,
+      :addition,
+      :subtraction,
+      :number
+    ]
 
-  @spec add_operator(ast_wrap, operator) :: ast_wrap
-  defp add_operator({:ok, pre_ast}, operator) do
-    case pre_ast do
-      {nil, value1, value2} -> {:ok, {operator, value1, value2}}
-      _ -> {:error, "Un operator has already been defined and cannot be overridden"}
+    indexType1 = Enum.find_index(precedence, &(&1 == type1))
+    indexType2 = Enum.find_index(precedence, &(&1 == type2))
+
+    case {indexType1, indexType2} do
+      {nil, index2} when is_number(index2) -> false
+      {index1, nil} when is_number(index1) -> true
+      {index1, index2} when is_number(index1) and is_number(index2) -> index1 <= index2
     end
   end
 end

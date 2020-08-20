@@ -7,9 +7,9 @@ defmodule Calc.Types do
       @type wrap(t) :: success(t) | error
 
       @type formula :: String.t()
-      @type kind :: :bracket | :operator | :operand
+      @type kind :: :bracket | :operator | :operand | :space
       @type operator :: :addition | :division | :multiplication | :subtraction
-      @type type :: operator | :number | :round_bracket | :box_bracket | :curly_bracket
+      @type type :: operator | :number | :round_bracket | :box_bracket | :curly_bracket | :space
       @type value :: number
 
       @type token :: {kind, type, value}

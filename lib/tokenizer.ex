@@ -36,6 +36,7 @@ defmodule Calc.Tokenizer do
       &tokenize_number/2,
       &tokenize_round_bracket_close/2,
       &tokenize_round_bracket_open/2,
+      &tokenize_space/2,
       &tokenize_subtraction/2
     ]
 
@@ -131,6 +132,11 @@ defmodule Calc.Tokenizer do
   @spec tokenize_round_bracket_close(formula, current) :: token_wrap
   defp tokenize_round_bracket_close(formula, current) do
     tokenize_char(:bracket, :round_bracket, ")", formula, current)
+  end
+
+  @spec tokenize_space(formula, current) :: token_wrap
+  defp tokenize_space(formula, current) do
+    tokenize_pattern(:space, :space, ~r/^\s+/u, formula, current)
   end
 
   @spec tokenize_subtraction(formula, current) :: token_wrap
