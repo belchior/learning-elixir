@@ -34,6 +34,7 @@ defmodule Calc.Parser do
       }
   """
 
+  @type char_value :: String.t()
   @type pre_ast :: {
           operator | nil,
           operand | pre_ast | nil,
@@ -88,11 +89,11 @@ defmodule Calc.Parser do
   # AST helpers
 
   @spec add_operand(ast_wrap, value) :: ast_wrap
-  defp add_operand({:ok, pre_ast}, value) do
+  def add_operand({:ok, pre_ast}, char_value) do
     case pre_ast do
-      {operator, nil, nil} -> {:ok, {operator, to_number(value), nil}}
-      {operator, number1, nil} -> {:ok, {operator, number1, to_number(value)}}
-      _ -> {:error, "The value #{inspect(value)} can't be added, the node are filled or invalid"}
+      {operator, nil, nil} -> {:ok, {operator, to_number(char_value), nil}}
+      {operator, number1, nil} -> {:ok, {operator, number1, to_number(char_value)}}
+      _ -> {:error, "The value #{inspect(char_value)} can't be added, the node are filled or invalid"}
     end
   end
 

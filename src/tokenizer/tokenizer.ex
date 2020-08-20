@@ -31,6 +31,10 @@ defmodule Calc.Tokenizer do
   def tokenize(formula) do
     tokenizers = [
       &tokenize_addition/2,
+      &tokenize_box_bracket_close/2,
+      &tokenize_box_bracket_open/2,
+      &tokenize_curly_bracket_close/2,
+      &tokenize_curly_bracket_open/2,
       &tokenize_division/2,
       &tokenize_multiplication/2,
       &tokenize_number/2,
@@ -107,6 +111,26 @@ defmodule Calc.Tokenizer do
   @spec tokenize_addition(formula, current) :: token_wrap
   defp tokenize_addition(formula, current) do
     tokenize_char(:operator, :addition, "+", formula, current)
+  end
+
+  @spec tokenize_box_bracket_open(formula, current) :: token_wrap
+  defp tokenize_box_bracket_open(formula, current) do
+    tokenize_char(:bracket, :box_bracket, "[", formula, current)
+  end
+
+  @spec tokenize_box_bracket_close(formula, current) :: token_wrap
+  defp tokenize_box_bracket_close(formula, current) do
+    tokenize_char(:bracket, :box_bracket, "]", formula, current)
+  end
+
+  @spec tokenize_curly_bracket_open(formula, current) :: token_wrap
+  defp tokenize_curly_bracket_open(formula, current) do
+    tokenize_char(:bracket, :curly_bracket, "{", formula, current)
+  end
+
+  @spec tokenize_curly_bracket_close(formula, current) :: token_wrap
+  defp tokenize_curly_bracket_close(formula, current) do
+    tokenize_char(:bracket, :curly_bracket, "}", formula, current)
   end
 
   @spec tokenize_division(formula, current) :: token_wrap

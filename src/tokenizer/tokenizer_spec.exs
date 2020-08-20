@@ -90,6 +90,54 @@ defmodule TokenizerTest do
     assert tokenize(formula) == {:ok, tokens}
   end
 
+  test "tokenize should convert a formula with round bracket to a list of tokens" do
+    formula = "(1+(2))"
+
+    tokens = [
+      {:bracket, :round_bracket, "("},
+      {:operand, :number, "1"},
+      {:operator, :addition, "+"},
+      {:bracket, :round_bracket, "("},
+      {:operand, :number, "2"},
+      {:bracket, :round_bracket, ")"},
+      {:bracket, :round_bracket, ")"}
+    ]
+
+    assert tokenize(formula) == {:ok, tokens}
+  end
+
+  test "tokenize should convert a formula with box bracket to a list of tokens" do
+    formula = "[1+[2]]"
+
+    tokens = [
+      {:bracket, :box_bracket, "["},
+      {:operand, :number, "1"},
+      {:operator, :addition, "+"},
+      {:bracket, :box_bracket, "["},
+      {:operand, :number, "2"},
+      {:bracket, :box_bracket, "]"},
+      {:bracket, :box_bracket, "]"}
+    ]
+
+    assert tokenize(formula) == {:ok, tokens}
+  end
+
+  test "tokenize should convert a formula with curly bracket to a list of tokens" do
+    formula = "{1+{2}}"
+
+    tokens = [
+      {:bracket, :curly_bracket, "{"},
+      {:operand, :number, "1"},
+      {:operator, :addition, "+"},
+      {:bracket, :curly_bracket, "{"},
+      {:operand, :number, "2"},
+      {:bracket, :curly_bracket, "}"},
+      {:bracket, :curly_bracket, "}"}
+    ]
+
+    assert tokenize(formula) == {:ok, tokens}
+  end
+
   test "tokenize should raise an exception in a invalid formula" do
     formula = "1+2-???3*4/6"
 

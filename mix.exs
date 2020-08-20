@@ -8,7 +8,10 @@ defmodule Calc.MixProject do
       elixir: "~> 1.10",
       escript: escript_config(),
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      elixirc_paths: ["src"],
+      test_paths: ["src"],
+      test_pattern: "*_spec.exs"
     ]
   end
 
