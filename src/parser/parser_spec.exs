@@ -2,7 +2,81 @@ defmodule ParserTest do
   use ExUnit.Case
   import Calc.Parser
 
-  doctest Calc.Parser
+  @moduledoc """
+  The parser test suite
+  """
+
+  test "parse should return an Invalid expression error when the expression starts with an empty list" do
+    tokens = []
+    assert parse({:ok, tokens}) == {:error, "Invalid expression"}
+  end
+
+  test "parse should return a valid AST when the only token is a operand" do
+    tokens = [{:operand, :number, "1"}]
+    ast = {:addition, 0, 1}
+    assert parse({:ok, tokens}) == {:ok, ast}
+  end
+
+  test "parse should return an Invalid expression Error when the list of tokens has only one token and is not an operand" do
+    tokens = [{:operator, :addition, "+"}]
+    assert parse({:ok, tokens}) == {:error, "Invalid expression"}
+  end
+
+  test "parse should return an valid AST from formulas started with operator: + or -" do
+    tokens = [{:operator, :addition, "+"}, {:operand, :number, "1"}]
+    ast = {:addition, 0, 1}
+    assert parse({:ok, tokens}) == {:ok, ast}
+
+    tokens = [{:operator, :subtraction, "-"}, {:operand, :number, "2.1"}]
+    ast = {:subtraction, 0, 2.1}
+    assert parse({:ok, tokens}) == {:ok, ast}
+
+    tokens = [
+      {:operator, :addition, "+"},
+      {:operand, :number, "1"},
+      {:operator, :addition, "+"},
+      {:operand, :number, "1"}
+    ]
+
+    ast = {:addition, 0, {:addition, 1, 1}}
+    assert parse({:ok, tokens}) == {:ok, ast}
+
+    tokens = [
+      {:operator, :subtraction, "-"},
+      {:operand, :number, "2.1"},
+      {:operator, :addition, "+"},
+      {:operand, :number, "1"}
+    ]
+
+    ast = {:subtraction, 0, {:addition, 2.1, 1}}
+    assert parse({:ok, tokens}) == {:ok, ast}
+  end
+
+  test "parse should return a valid AST" do
+    tokens = [
+      {:operand, :number, "1"},
+      {:operator, :addition, "+"},
+      {:operand, :number, "2"},
+      {:operator, :subtraction, "-"},
+      {:operand, :number, "3"},
+      {:operator, :multiplication, "*"},
+      {:operand, :number, "4"},
+      {:operator, :division, "/"},
+      {:operand, :number, "6"}
+    ]
+
+    ast = {
+      :subtraction,
+      {:addition, 1, 2},
+      {
+        :division,
+        {:multiplication, 3, 4},
+        6
+      }
+    }
+
+    assert parse({:ok, tokens}) == {:ok, ast}
+  end
 
   test "parse should respect the precedence order: multiplication over division" do
     tokens = [
@@ -73,32 +147,6 @@ defmodule ParserTest do
     ]
 
     ast = {:subtraction, {:addition, 1, 2}, 3}
-    assert parse({:ok, tokens}) == {:ok, ast}
-  end
-
-  test "parse should convert a list of tokens into an AST" do
-    tokens = [
-      {:operand, :number, "1"},
-      {:operator, :addition, "+"},
-      {:operand, :number, "2"},
-      {:operator, :subtraction, "-"},
-      {:operand, :number, "3"},
-      {:operator, :multiplication, "*"},
-      {:operand, :number, "4"},
-      {:operator, :division, "/"},
-      {:operand, :number, "6"}
-    ]
-
-    ast = {
-      :subtraction,
-      {:addition, 1, 2},
-      {
-        :division,
-        {:multiplication, 3, 4},
-        6
-      }
-    }
-
     assert parse({:ok, tokens}) == {:ok, ast}
   end
 

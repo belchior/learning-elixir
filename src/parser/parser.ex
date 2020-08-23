@@ -34,7 +34,6 @@ defmodule Calc.Parser do
       }
   """
 
-  @type char_value :: String.t()
   @type pre_ast :: {
           operator | nil,
           operand | pre_ast | nil,
@@ -42,6 +41,13 @@ defmodule Calc.Parser do
         }
   @type ast_wrap :: wrap(pre_ast)
   @type tokens_wrap :: wrap(tokens)
+  @type current :: number
+
+  defguardp is_empty(ast_wrap) when ast_wrap == {:ok, {nil, nil, nil}}
+
+  defguardp type_of(token) when elem(token, 1)
+
+  defguardp started_with_sign(tokens) when type_of(hd(tokens)) == :addition or type_of(hd(tokens)) == :subtraction
 
   @spec parse(tokens_wrap) :: wrap(ast)
   def parse({:error, reason}) do
@@ -51,7 +57,7 @@ defmodule Calc.Parser do
   def parse({:ok, tokens}) do
     tokens
     |> remove_space
-    |> to_ast({:ok, {nil, nil, nil}})
+    |> resolve_expression({:ok, {nil, nil, nil}})
   end
 
   @spec to_number(binary) :: :error | number
@@ -63,33 +69,62 @@ defmodule Calc.Parser do
     end
   end
 
-  @spec to_ast(tokens, ast_wrap) :: ast_wrap
-  defp to_ast(_tokens, {:error, reason}) do
-    {:error, reason}
+  defp resolve_expression([], ast_wrap) when is_empty(ast_wrap) do
+    {:error, "Invalid expression"}
   end
 
-  defp to_ast([], ast_wrap) do
+  defp resolve_expression([], ast_wrap) do
     ast_wrap
   end
 
-  defp to_ast(tokens, {:ok, pre_ast}) do
-    if node_filled?(pre_ast) do
-      create_node(tokens, {:ok, pre_ast})
-    else
-      [token | tail] = tokens
-      ast_wrap = {:ok, pre_ast}
+  defp resolve_expression([unique_token], ast_wrap) when is_empty(ast_wrap) do
+    case unique_token do
+      {:operand, _type, char_value} -> {:ok, {:addition, 0, to_number(char_value)}}
+      _ -> {:error, "Invalid expression"}
+    end
+  end
 
-      case token do
-        {:operator, type, _} -> to_ast(tail, add_operator(ast_wrap, type))
-        {:operand, _, value} -> to_ast(tail, add_operand(ast_wrap, value))
+  defp resolve_expression(tokens, ast_wrap) when is_empty(ast_wrap) and started_with_sign(tokens) do
+    new_tokens = [{:operand, :number, "0"} | tokens]
+    resolve_expression(new_tokens, ast_wrap)
+  end
+
+  defp resolve_expression(_tokens, {:error, reason}) do
+    {:error, reason}
+  end
+
+  defp resolve_expression(tokens, {:ok, pre_ast}) do
+    [token | tail] = tokens
+
+    if node_filled?(pre_ast) do
+      # it is necessary to create a new node
+      {ast_operator, ast_value1, ast_value2} = pre_ast
+      {_, token_operator, _} = token
+
+      if precede?(token_operator, ast_operator) do
+        # and add the new as a child of the current node
+        ast_wrap = resolve_expression(tail, {:ok, {token_operator, ast_value2, nil}})
+
+        case ast_wrap do
+          {:error, reason} -> {:error, reason}
+          {:ok, new_node} -> {:ok, {ast_operator, ast_value1, new_node}}
+        end
+      else
+        # and add the current as a child of new node
+        ast_wrap = {:ok, {token_operator, pre_ast, nil}}
+        resolve_expression(tail, ast_wrap)
       end
+    else
+      # fill the current node
+      ast_wrap = fill_node(token, {:ok, pre_ast})
+      resolve_expression(tail, ast_wrap)
     end
   end
 
   # AST helpers
 
-  @spec add_operand(ast_wrap, value) :: ast_wrap
-  def add_operand({:ok, pre_ast}, char_value) do
+  @spec add_operand(ast_wrap, char_value) :: ast_wrap
+  defp add_operand({:ok, pre_ast}, char_value) do
     case pre_ast do
       {operator, nil, nil} -> {:ok, {operator, to_number(char_value), nil}}
       {operator, number1, nil} -> {:ok, {operator, number1, to_number(char_value)}}
@@ -105,25 +140,16 @@ defmodule Calc.Parser do
     end
   end
 
-  @spec create_node(tokens, ast_wrap) :: ast_wrap
-  defp create_node([token | tail], {:ok, pre_ast}) do
-    {ast_op, ast_val1, ast_val2} = pre_ast
-    {_, token_op, _} = token
-
-    if precede?(ast_op, token_op) do
-      to_ast(tail, {:ok, {token_op, pre_ast, nil}})
-    else
-      ast_wrap = to_ast(tail, {:ok, {token_op, ast_val2, nil}})
-
-      case ast_wrap do
-        {:ok, new_ast} -> {:ok, {ast_op, ast_val1, new_ast}}
-        {:error, reason} -> {:error, reason}
-      end
+  @spec fill_node(token, ast_wrap) :: ast_wrap
+  defp fill_node(token, ast_wrap) do
+    case token do
+      {:operator, type, _} -> add_operator(ast_wrap, type)
+      {:operand, _, char_value} -> add_operand(ast_wrap, char_value)
     end
   end
 
   @spec remove_space(tokens) :: tokens
-  def remove_space(tokens) do
+  defp remove_space(tokens) do
     Enum.reject(tokens, fn token -> elem(token, 0) == :space end)
   end
 
@@ -147,10 +173,10 @@ defmodule Calc.Parser do
       :number
     ]
 
-    indexType1 = Enum.find_index(precedence, &(&1 == type1))
-    indexType2 = Enum.find_index(precedence, &(&1 == type2))
+    type1_index = Enum.find_index(precedence, &(&1 == type1))
+    type2_index = Enum.find_index(precedence, &(&1 == type2))
 
-    case {indexType1, indexType2} do
+    case {type1_index, type2_index} do
       {nil, index2} when is_number(index2) -> false
       {index1, nil} when is_number(index1) -> true
       {index1, index2} when is_number(index1) and is_number(index2) -> index1 <= index2
