@@ -40,19 +40,19 @@ defmodule Calc.Interpreter do
     formula
     |> tokenize
     |> parse
-    |> compile
+    |> interpret
     |> format
   end
 
-  @spec compile(ast_wrap | ast | number) :: number | error
-  def compile({:error, reason}), do: {:error, reason}
+  @spec interpret(ast_wrap | ast | number) :: number | error
+  def interpret({:error, reason}), do: {:error, reason}
 
-  def compile({:ok, ast}), do: compile(ast)
+  def interpret({:ok, ast}), do: interpret(ast)
 
-  def compile(num) when is_number(num), do: num
+  def interpret(num) when is_number(num), do: num
 
-  def compile({operator, operandA, operandB}) do
-    basic_operation(operator, compile(operandA), compile(operandB))
+  def interpret({operator, operand_a, operand_b}) do
+    basic_operation(operator, interpret(operand_a), interpret(operand_b))
   end
 
   @spec format(value) :: result
@@ -68,8 +68,8 @@ defmodule Calc.Interpreter do
   # Basic operations
 
   @spec basic_operation(operator, number, number) :: result
-  def basic_operation(operator, numA, numB) do
-    result = apply(__MODULE__, operator, [numA, numB])
+  def basic_operation(operator, num_a, num_b) do
+    result = apply(__MODULE__, operator, [num_a, num_b])
 
     case result do
       {:ok, value} -> value
@@ -78,26 +78,26 @@ defmodule Calc.Interpreter do
   end
 
   @spec addition(number, number) :: success(value)
-  def addition(numA, numB) do
-    {:ok, numA + numB}
+  def addition(num_a, num_b) do
+    {:ok, num_a + num_b}
   end
 
   @spec division(number, number) :: result
-  def division(_numA, numB) when numB == 0 do
+  def division(_num_a, num_b) when num_b == 0 do
     {:error, "impossible divide by 0"}
   end
 
-  def division(numA, numB) do
-    {:ok, numA / numB}
+  def division(num_a, num_b) do
+    {:ok, num_a / num_b}
   end
 
   @spec multiplication(number, number) :: success(value)
-  def multiplication(numA, numB) do
-    {:ok, numA * numB}
+  def multiplication(num_a, num_b) do
+    {:ok, num_a * num_b}
   end
 
   @spec subtraction(number, number) :: success(value)
-  def subtraction(numA, numB) do
-    {:ok, numA - numB}
+  def subtraction(num_a, num_b) do
+    {:ok, num_a - num_b}
   end
 end

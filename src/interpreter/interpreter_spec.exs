@@ -13,7 +13,7 @@ defmodule InterpreterTest do
   end
 
   test "run should return un error when formula has unknown symbol" do
-    assert run("?") == {:error, "Invalid char near at: \"?\""}
+    assert run("?") == {:error, "Invalid char near at: ?"}
   end
 
   test "run should return un error when formula contains division by zero" do

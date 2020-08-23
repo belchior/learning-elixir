@@ -82,7 +82,7 @@ defmodule Calc.Tokenizer do
       {:ok, token}
     else
       char = String.at(formula, current)
-      {:error, "Invalid char near at: \"#{char}\""}
+      {:error, "Invalid char near at: #{char}"}
     end
   end
 

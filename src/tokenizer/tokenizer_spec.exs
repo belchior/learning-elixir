@@ -1,4 +1,8 @@
 defmodule TokenizerTest do
+  @moduledoc """
+  The tokenize test suite
+  """
+
   use ExUnit.Case
   import Calc.Tokenizer
 
@@ -141,6 +145,6 @@ defmodule TokenizerTest do
   test "tokenize should raise an exception in a invalid formula" do
     formula = "1+2-???3*4/6"
 
-    assert tokenize(formula) == {:error, "Invalid char near at: \"?\""}
+    assert tokenize(formula) == {:error, "Invalid char near at: ?"}
   end
 end

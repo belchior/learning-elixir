@@ -4,13 +4,18 @@ This project is a math expression calculator and compiler, the reason to it exis
 
 ## Development
 
-To build run:
+To install dependencies run:
+
+```shell
+mix deps.get
+```
+
+To build:
 
 ```shell
 mix escript.build
-```
 
-To execute the calculator:
+To execute:
 
 ```shell
 ./calc 1+2-3
