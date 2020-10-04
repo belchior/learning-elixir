@@ -1,12 +1,10 @@
 defmodule TokenizerTest do
-  @moduledoc """
-  The tokenize test suite
-  """
-
   use ExUnit.Case
   import Calc.Tokenizer
 
-  doctest Calc.Tokenizer
+  @moduledoc """
+  The tokenize test suite
+  """
 
   test "should tokenize a addition operator" do
     tokens = tokenize("+")

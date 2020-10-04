@@ -2,7 +2,9 @@ defmodule InterpreterTest do
   use ExUnit.Case
   import Calc.Interpreter
 
-  doctest Calc.Interpreter
+  @moduledoc """
+  The interpreter test suite
+  """
 
   test "run should return un error when the formula is empty" do
     assert run("") == {:error, "formula is empty"}

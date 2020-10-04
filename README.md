@@ -14,9 +14,10 @@ To build:
 
 ```shell
 mix escript.build
+```
 
 To execute:
 
 ```shell
-./calc 1+2-3
+./calc '1+(2-3)*((4))'
 ```

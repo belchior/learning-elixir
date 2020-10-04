@@ -195,4 +195,124 @@ defmodule ParserTest do
     assert to_number("x1") === :error
     assert to_number("x1.3") === :error
   end
+
+  test "expression 1." do
+    tokens = [
+      {:operand, :number, "1"}
+    ]
+
+    ast = {:addition, 0, 1}
+
+    assert parse({:ok, tokens}) == {:ok, ast}
+  end
+
+  test "expression 2." do
+    tokens = [
+      {:operand, :number, "1"},
+      {:operator, :addition, "+"},
+      {:operand, :number, "2"}
+    ]
+
+    ast = {:addition, 1, 2}
+
+    assert parse({:ok, tokens}) == {:ok, ast}
+  end
+
+  test "expression 3." do
+    tokens = [
+      {:operand, :number, "1"},
+      {:operator, :addition, "+"},
+      {:operand, :number, "2"},
+      {:operator, :subtraction, "-"},
+      {:operand, :number, "3"}
+    ]
+
+    ast = {:subtraction, {:addition, 1, 2}, 3}
+
+    assert parse({:ok, tokens}) == {:ok, ast}
+  end
+
+  test "expression 4." do
+    tokens = [
+      {:operand, :number, "1"},
+      {:operator, :addition, "+"},
+      {:operand, :number, "2"},
+      {:operator, :multiplication, "*"},
+      {:operand, :number, "3"}
+    ]
+
+    ast = {:addition, 1, {:multiplication, 2, 3}}
+
+    assert parse({:ok, tokens}) == {:ok, ast}
+  end
+
+  test "expression 5." do
+    tokens = [
+      {:bracket, :round_bracket, "("},
+      {:operand, :number, "1"},
+      {:bracket, :round_bracket, ")"}
+    ]
+
+    ast = {:addition, 0, 1}
+
+    assert parse({:ok, tokens}) == {:ok, ast}
+  end
+
+  test "expression 6." do
+    tokens = [
+      {:bracket, :round_bracket, "("},
+      {:operand, :number, "1"},
+      {:operator, :addition, "+"},
+      {:operand, :number, "2"},
+      {:bracket, :round_bracket, ")"}
+    ]
+
+    ast = {:addition, 1, 2}
+
+    assert parse({:ok, tokens}) == {:ok, ast}
+  end
+
+  test "expression 7." do
+    tokens = [
+      {:operand, :number, "1"},
+      {:operator, :addition, "+"},
+      {:bracket, :round_bracket, "("},
+      {:operand, :number, "2"},
+      {:bracket, :round_bracket, ")"}
+    ]
+
+    ast = {:addition, 1, {:addition, 0, 2}}
+
+    assert parse({:ok, tokens}) == {:ok, ast}
+  end
+
+  test "expression 8." do
+    tokens = [
+      {:bracket, :round_bracket, "("},
+      {:operand, :number, "2"},
+      {:bracket, :round_bracket, ")"},
+      {:operator, :addition, "+"},
+      {:operand, :number, "1"}
+    ]
+
+    ast = {:addition, {:addition, 0, 2}, 1}
+
+    assert parse({:ok, tokens}) == {:ok, ast}
+  end
+
+  test "expression 9." do
+    tokens = [
+      {:bracket, :round_bracket, "("},
+      {:operand, :number, "1"},
+      {:bracket, :round_bracket, ")"},
+      {:operator, :addition, "+"},
+      {:bracket, :round_bracket, "("},
+      {:operand, :number, "2"},
+      {:bracket, :round_bracket, ")"}
+    ]
+
+    ast = {:addition, {:addition, 0, 1}, {:addition, 0, 2}}
+
+    assert parse({:ok, tokens}) == {:ok, ast}
+  end
 end
