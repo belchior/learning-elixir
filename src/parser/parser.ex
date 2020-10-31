@@ -34,14 +34,13 @@ defmodule Calc.Parser do
       }
   """
 
-  @type pre_ast :: {
-          operator | nil,
-          operand | pre_ast | nil,
-          operand | pre_ast | nil
-        }
-  @type ast_wrap :: wrap(pre_ast)
-  @type tokens_wrap :: wrap(tokens)
-  @type current :: number
+  @typep pre_ast :: {
+           operator | nil,
+           operand | pre_ast | nil,
+           operand | pre_ast | nil
+         }
+  @typep ast_wrap :: wrap(pre_ast)
+  @typep tokens_wrap :: wrap(tokens)
 
   defguardp is_empty(ast_wrap) when ast_wrap == {:ok, {nil, nil, nil}}
 

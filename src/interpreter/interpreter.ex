@@ -28,8 +28,8 @@ defmodule Calc.Interpreter do
       1
   """
 
-  @type ast_wrap :: wrap(ast)
-  @type result :: wrap(value)
+  @typep ast_wrap :: wrap(ast)
+  @typep result :: wrap(value)
 
   # Interpreter
 
@@ -45,14 +45,18 @@ defmodule Calc.Interpreter do
   end
 
   @spec interpret(ast_wrap | ast | number) :: number | error
-  def interpret({:error, reason}), do: {:error, reason}
+  defp interpret({:error, reason}), do: {:error, reason}
 
-  def interpret({:ok, ast}), do: interpret(ast)
+  defp interpret({:ok, ast}), do: interpret(ast)
 
-  def interpret(num) when is_number(num), do: num
+  defp interpret(num) when is_number(num), do: num
 
-  def interpret({operator, operand_a, operand_b}) do
+  defp interpret({operator, operand_a, operand_b}) do
     basic_operation(operator, interpret(operand_a), interpret(operand_b))
+    |> case do
+      {:ok, value} -> value
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @spec format(value) :: result
@@ -68,36 +72,37 @@ defmodule Calc.Interpreter do
   # Basic operations
 
   @spec basic_operation(operator, number, number) :: result
-  def basic_operation(operator, num_a, num_b) do
-    result = apply(__MODULE__, operator, [num_a, num_b])
-
-    case result do
-      {:ok, value} -> value
-      {:error, reason} -> {:error, reason}
+  defp basic_operation(operator, num_a, num_b) do
+    case operator do
+      :addition -> addition(num_a, num_b)
+      :division -> division(num_a, num_b)
+      :multiplication -> multiplication(num_a, num_b)
+      :subtraction -> subtraction(num_a, num_b)
+      _ -> {:error, "Undefined operator: #{operator}"}
     end
   end
 
   @spec addition(number, number) :: success(value)
-  def addition(num_a, num_b) do
+  defp addition(num_a, num_b) do
     {:ok, num_a + num_b}
   end
 
   @spec division(number, number) :: result
-  def division(_num_a, num_b) when num_b == 0 do
+  defp division(_num_a, num_b) when num_b == 0 do
     {:error, "impossible divide by 0"}
   end
 
-  def division(num_a, num_b) do
+  defp division(num_a, num_b) do
     {:ok, num_a / num_b}
   end
 
   @spec multiplication(number, number) :: success(value)
-  def multiplication(num_a, num_b) do
+  defp multiplication(num_a, num_b) do
     {:ok, num_a * num_b}
   end
 
   @spec subtraction(number, number) :: success(value)
-  def subtraction(num_a, num_b) do
+  defp subtraction(num_a, num_b) do
     {:ok, num_a - num_b}
   end
 end

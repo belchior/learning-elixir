@@ -21,11 +21,11 @@ defmodule Calc.Tokenizer do
       ]
   """
 
-  @type current :: non_neg_integer
-  @type character :: String.t()
-  @type pattern :: Regex.t()
-  @type token_wrap :: {:ok, token} | {:empty, nil}
-  @type tokenizers :: [(formula, current -> token_wrap)]
+  @typep current :: non_neg_integer
+  @typep character :: String.t()
+  @typep pattern :: Regex.t()
+  @typep token_wrap :: {:ok, token} | {:empty, nil}
+  @typep tokenizers :: [(formula, current -> token_wrap)]
 
   @spec tokenize(formula) :: wrap(tokens)
   def tokenize(formula) do
