@@ -5,7 +5,9 @@ defmodule Calc do
   Documentation for `Calc`.
   """
 
-  @spec main([binary]) :: :ok
+  @type formula :: String.t()
+
+  @spec main([formula]) :: :ok
   def main([]) do
     IO.puts("Formula is required")
   end

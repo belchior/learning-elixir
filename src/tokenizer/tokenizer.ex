@@ -1,5 +1,5 @@
 defmodule Calc.Tokenizer do
-  use Calc.Types
+  use Calc.Types.Wrap
 
   @moduledoc """
   Tokenize the received formula
@@ -20,12 +20,19 @@ defmodule Calc.Tokenizer do
         {:operand, :number, "6"}
       ]
   """
-
-  @typep current :: non_neg_integer
+  @typep formula :: String.t()
   @typep character :: String.t()
+  @typep current :: non_neg_integer
   @typep pattern :: Regex.t()
   @typep token_wrap :: {:ok, token} | {:empty, nil}
   @typep tokenizers :: [(formula, current -> token_wrap)]
+  @typep tokens :: [token]
+
+  @type char_value :: String.t()
+  @type operator :: :addition | :division | :multiplication | :subtraction
+  @type kind :: :bracket | :operator | :operand | :space
+  @type type :: operator | :number | :round_bracket | :box_bracket | :curly_bracket | :space
+  @type token :: {kind, type, char_value}
 
   @spec tokenize(formula) :: wrap(tokens)
   def tokenize(formula) do

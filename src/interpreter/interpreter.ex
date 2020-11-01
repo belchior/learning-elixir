@@ -2,7 +2,10 @@ defmodule Calc.Interpreter do
   import Calc.Tokenizer, only: [tokenize: 1]
   import Calc.Parser, only: [parse: 1, to_number: 1]
 
-  use Calc.Types
+  use Calc.Types.Wrap
+
+  alias Calc.Tokenizer
+  alias Calc.Parser
 
   @moduledoc """
   Interprets un Abstract Syntax Tree and return a number
@@ -28,7 +31,8 @@ defmodule Calc.Interpreter do
       1
   """
 
-  @typep ast_wrap :: wrap(ast)
+  @typep value :: number
+  @typep formula :: String.t()
   @typep result :: wrap(value)
 
   # Interpreter
@@ -44,7 +48,7 @@ defmodule Calc.Interpreter do
     |> format
   end
 
-  @spec interpret(ast_wrap | ast | number) :: number | error
+  @spec interpret(wrap(Parser.ast()) | Parser.ast() | value) :: value | error
   defp interpret({:error, reason}), do: {:error, reason}
 
   defp interpret({:ok, ast}), do: interpret(ast)
@@ -59,7 +63,7 @@ defmodule Calc.Interpreter do
     end
   end
 
-  @spec format(value) :: result
+  @spec format(value | error) :: result
   defp format({:error, reason}), do: {:error, reason}
 
   defp format(value) when is_number(value) do
@@ -71,38 +75,38 @@ defmodule Calc.Interpreter do
 
   # Basic operations
 
-  @spec basic_operation(operator, number, number) :: result
-  defp basic_operation(operator, num_a, num_b) do
+  @spec basic_operation(Tokenizer.operator(), value, value) :: result
+  defp basic_operation(operator, value_a, value_b) do
     case operator do
-      :addition -> addition(num_a, num_b)
-      :division -> division(num_a, num_b)
-      :multiplication -> multiplication(num_a, num_b)
-      :subtraction -> subtraction(num_a, num_b)
+      :addition -> addition(value_a, value_b)
+      :division -> division(value_a, value_b)
+      :multiplication -> multiplication(value_a, value_b)
+      :subtraction -> subtraction(value_a, value_b)
       _ -> {:error, "Undefined operator: #{operator}"}
     end
   end
 
-  @spec addition(number, number) :: success(value)
-  defp addition(num_a, num_b) do
-    {:ok, num_a + num_b}
+  @spec addition(value, value) :: success(value)
+  defp addition(value_a, value_b) do
+    {:ok, value_a + value_b}
   end
 
-  @spec division(number, number) :: result
-  defp division(_num_a, num_b) when num_b == 0 do
+  @spec division(value, value) :: result
+  defp division(_value_a, value_b) when value_b == 0 do
     {:error, "impossible divide by 0"}
   end
 
-  defp division(num_a, num_b) do
-    {:ok, num_a / num_b}
+  defp division(value_a, value_b) do
+    {:ok, value_a / value_b}
   end
 
-  @spec multiplication(number, number) :: success(value)
-  defp multiplication(num_a, num_b) do
-    {:ok, num_a * num_b}
+  @spec multiplication(value, value) :: success(value)
+  defp multiplication(value_a, value_b) do
+    {:ok, value_a * value_b}
   end
 
-  @spec subtraction(number, number) :: success(value)
-  defp subtraction(num_a, num_b) do
-    {:ok, num_a - num_b}
+  @spec subtraction(value, value) :: success(value)
+  defp subtraction(value_a, value_b) do
+    {:ok, value_a - value_b}
   end
 end

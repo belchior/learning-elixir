@@ -1,9 +1,9 @@
 defmodule Calc.MixProject do
+  use Mix.Project
+
   @moduledoc """
   Mix configurations
   """
-
-  use Mix.Project
 
   def project do
     [

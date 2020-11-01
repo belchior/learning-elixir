@@ -1,5 +1,7 @@
 defmodule Calc.Parser do
-  use Calc.Types
+  use Calc.Types.Wrap
+
+  alias Calc.Tokenizer
 
   @moduledoc """
   Parser token list to AST
@@ -34,20 +36,26 @@ defmodule Calc.Parser do
       }
   """
 
+  @typep tokens :: [Tokenizer.token()]
+
   @typep pre_ast :: {
-           operator | nil,
+           Tokenizer.operator() | nil,
            operand | pre_ast | nil,
            operand | pre_ast | nil
          }
-  @typep ast_wrap :: wrap(pre_ast)
   @typep tokens_wrap :: wrap(tokens)
 
-  defguardp is_empty(ast_wrap) when ast_wrap == {:ok, {nil, nil, nil}}
+  @type operand :: number
+  @type ast :: {
+          Tokenizer.operator(),
+          operand | ast,
+          operand | ast
+        }
 
+  defguardp is_empty(ast_wrap) when ast_wrap == {:ok, {nil, nil, nil}}
   defguardp kind_of(token) when elem(token, 0)
   defguardp type_of(token) when elem(token, 1)
   defguardp char_value_of(token) when elem(token, 2)
-
   defguardp started_with_sign(tokens) when type_of(hd(tokens)) == :addition or type_of(hd(tokens)) == :subtraction
 
   @spec to_number(binary) :: :error | number
@@ -70,6 +78,7 @@ defmodule Calc.Parser do
     |> to_ast({:ok, {nil, nil, nil}})
   end
 
+  @spec to_ast(tokens, wrap(pre_ast)) :: wrap(pre_ast)
   defp to_ast([], ast_wrap) when is_empty(ast_wrap) do
     {:error, "Invalid expression"}
   end
@@ -105,6 +114,7 @@ defmodule Calc.Parser do
     end
   end
 
+  @spec resolve_bracket(tokens, wrap(pre_ast)) :: wrap(pre_ast)
   defp resolve_bracket(tokens, ast_wrap) do
     {:ok, pre_ast} = ast_wrap
 
@@ -165,7 +175,7 @@ defmodule Calc.Parser do
 
   # AST helpers
 
-  @spec add_operand(ast_wrap, char_value) :: ast_wrap
+  @spec add_operand(wrap(pre_ast), Tokenizer.char_value()) :: wrap(pre_ast)
   defp add_operand({:ok, pre_ast}, char_value) do
     case pre_ast do
       {operator, nil, nil} -> {:ok, {operator, to_number(char_value), nil}}
@@ -174,7 +184,7 @@ defmodule Calc.Parser do
     end
   end
 
-  @spec add_operator(ast_wrap, operator) :: ast_wrap
+  @spec add_operator(wrap(pre_ast), Tokenizer.operator()) :: wrap(pre_ast)
   defp add_operator({:ok, pre_ast}, operator) do
     case pre_ast do
       {nil, value1, value2} -> {:ok, {operator, value1, value2}}
@@ -182,7 +192,7 @@ defmodule Calc.Parser do
     end
   end
 
-  @spec add_pre_ast(ast_wrap, pre_ast) :: ast_wrap
+  @spec add_pre_ast(wrap(pre_ast), pre_ast) :: wrap(pre_ast)
   defp add_pre_ast({:ok, pre_ast}, pre_ast_child) do
     case pre_ast do
       {operator, nil, nil} -> {:ok, {operator, pre_ast_child, nil}}
@@ -227,7 +237,7 @@ defmodule Calc.Parser do
       |> Enum.find_value(false, &is_nil/1))
   end
 
-  @spec precede?(type, type) :: boolean
+  @spec precede?(Tokenizer.type(), Tokenizer.type()) :: boolean
   defp precede?(type1, type2) do
     precedence = [
       :round_bracket,
